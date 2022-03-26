@@ -1,0 +1,21 @@
+---
+- name: talk to all hosts to learn their distro
+  hosts: all
+  tasks:
+    - name: Classify each host depending on distro
+      group_by:
+        key: os_{{ ansible_facts['distribution'] }}
+
+- hosts: os_Rocky
+  tasks:
+    - name: update app database cache
+      become: yes
+      yum:
+        update_only: true 
+
+- hosts: os_Debian
+  tasks:
+    - name: update app database cache
+      become: yes
+      apt:
+        update_cache: true 
