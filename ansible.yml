@@ -1,0 +1,6 @@
+# vim:ft=yaml.ansible
+---
+- hosts: all
+  roles:
+    - base
+    - containers

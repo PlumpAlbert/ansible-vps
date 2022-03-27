@@ -1,0 +1,59 @@
+- name: Install docker and docker-compose
+  become: true
+  apt:
+    name: ca-certificates,curl,gnupg,lsb-release
+    state: latest
+
+- name: Adding Docker's GPG key
+  become: true
+  shell:
+    creates: /usr/share/keyrings/docker-archive-keyring.gpg
+    cmd:  curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+- name: Find out server's architecture
+  become: true
+  shell: dpkg --print-architecture
+  register: deb_architecture
+
+- name: Adding Docker's repo
+  become: true
+  template:
+    dest: /etc/apt/sources.list.d/docker.list
+    owner: root
+    group: root
+    mode: 0644
+    src: docker.list.j2
+
+- name: Update package index
+  become: true
+  apt:
+    state: latest
+    name: docker-ce,docker-ce-cli,containerd.io
+    update_cache: true
+
+- name: Add docker service to autostart
+  become: true
+  service:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Add containerd service to autostart
+  become: true
+  service:
+    name: containerd
+    enabled: yes
+    state: started
+
+- name: Create docker group
+  become: true
+  group:
+    name: docker
+
+- name: Add user to docker group
+  become: true
+  user:
+    append: yes
+    name: "{{ user_name }}"
+    groups:
+      - docker

@@ -1,43 +1,23 @@
----
-- name: Update system and repository cache (apt)
+- name: Create `sudo` group
   become: yes
-  apt:
-    update_cache: yes
-    upgrade: dist
-    state: latest
-
-- name: Install core packages
-  become: yes
-  apt:
-    name: zsh,git,vim
-
-- name: Create sudo group
-  become: true
   group:
     name: sudo
 
-- name: Copy sudoers file for `sudo` group
-  become: true
+- name: Copy `99-sudo` file to `/etc/sudoers.d/`
+  become: yes
   copy:
-    src: 99-sudo
-    dest: /etc/sudoers.d/99-sudo
     owner: root
     group: root
     mode: 0640
+    src: 99-sudo
+    dest: /etc/sudoers.d/99-sudo
 
-- name: Create user `plump`
+- name: Create user
   become: yes
   user:
-    name: plump
-    password: matthew
+    password: "{{ user_password | password_hash('sha512') }}"
+    name: "{{ user_name }}"
     shell: /usr/bin/zsh
     group: users
     groups:
       - sudo
-
-- name: Add ssh keys for `plump`
-  become: yes
-  ansible.posix.authorized_key:
-    user: plump
-    key: https://github.com/PlumpAlbert.keys
-    path: /home/plump/.ssh/authorized_keys

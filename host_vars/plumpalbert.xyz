@@ -1,0 +1,4 @@
+# vim:ft=yaml.ansible
+---
+user_name: 'plump'
+user_password: '1Udmi1a$tE1Fkt|y'
