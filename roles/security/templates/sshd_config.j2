@@ -1,0 +1,14 @@
+Protocol 2
+Port {{ ssh_port }}
+PermitRootLogin prohibit-password
+MaxAuthTries 6
+MaxSessions 10
+AuthorizedKeysFile .ssh/authorized_keys
+PasswordAuthentication no
+PermitEmptyPasswords no
+KbdInteractiveAuthentication no
+UsePAM yes
+X11Forwarding no
+PrintMotd no # pam does that
+ClientAliveInterval 300
+Subsystem sftp /usr/lib/ssh/sftp-server
