@@ -1,0 +1,50 @@
+# vim:ft=yaml.ansible
+---
+- hosts: all
+  tasks:
+  - name: Update system and repository cache (apt)
+    become: yes
+    apt:
+      update_cache: yes
+      upgrade: dist
+      state: latest
+
+  - name: Install core packages
+    become: yes
+    apt:
+      name: zsh,git,vim,curl,sudo
+
+  - name: Create `wheel` group
+    become: true
+    group:
+      name: wheel
+
+  - name: Create sudoers directory
+    shell:
+      executable: /usr/bin/sh
+      cmd: mkdir -p /etc/sudoers.d
+      creates: /etc/sudoers.d
+
+  - name: Copy sudoers file for `sudo` group
+    become: true
+    copy:
+      src: 10-wheel
+      dest: /etc/sudoers.d/10-wheel
+      owner: root
+      group: root
+      mode: 0640
+
+  - name: Create user `ansible`
+    become: yes
+    user:
+      name: ansible
+      password: "{{ '1Udmi1a$tE1Fkt|y' | password_hash('sha512') }}"
+      shell: /usr/bin/zsh
+      group: wheel
+
+  - name: Add ssh keys for `ansible`
+    become: yes
+    ansible.posix.authorized_key:
+      user: ansible
+      key: https://github.com/PlumpAlbert.keys
+      path: /home/ansible/.ssh/authorized_keys
