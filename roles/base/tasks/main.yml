@@ -24,15 +24,14 @@
   become: yes
   user:
     name: plump
+    password: matthew
     group: users
     groups:
-      - audio
-      - video
-      - network
-      - power
       - sudo
 
 - name: Add ssh keys for `plump`
+  become: yes
   ansible.posix.authorized_key:
     user: plump
     key: https://github.com/PlumpAlbert.keys
+    path: /home/plump/.ssh/authorized_keys
