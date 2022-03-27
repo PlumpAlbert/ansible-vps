@@ -6,6 +6,11 @@
     upgrade: dist
     state: latest
 
+- name: Install core packages
+  become: yes
+  apt:
+    name: zsh,git,vim
+
 - name: Create sudo group
   become: true
   group:
@@ -25,6 +30,7 @@
   user:
     name: plump
     password: matthew
+    shell: /usr/bin/zsh
     group: users
     groups:
       - sudo
