@@ -1,9 +1,11 @@
 - name: Create `sudo` group
+  tags: base
   become: yes
   group:
     name: sudo
 
 - name: Copy `99-sudo` file to `/etc/sudoers.d/`
+  tags: base
   become: yes
   copy:
     owner: root
@@ -13,6 +15,7 @@
     dest: /etc/sudoers.d/99-sudo
 
 - name: Create user
+  tags: base
   become: yes
   user:
     password: "{{ user_password | password_hash('sha512') }}"
@@ -21,3 +24,13 @@
     group: users
     groups:
       - sudo
+
+- name: Copy zsh config
+  tags: base
+  become: yes
+  copy:
+    src: zshrc
+    dest: "/home/{{ user_name }}/.zshrc"
+    owner: plump
+    group: users
+    mode: 0754
