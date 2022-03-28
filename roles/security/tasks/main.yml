@@ -1,13 +1,4 @@
 ---
-- name: Copy sshd_config to host
-  become: yes
-  template:
-    owner: root
-    group: root
-    mode: 0644
-    src: sshd_config.j2
-    dest: /etc/ssh/sshd_config
-
 - name: Uninstall ufw
   become: yes
   apt:
@@ -21,10 +12,11 @@
     name: firewalld
     state: latest
 
-- name: Start firewalld service
+- name: Enable firewalld service
   become: yes
   service:
     state: started
+    enabled: yes
     name: firewalld
 
 - name: Allow SSH connections
@@ -42,3 +34,18 @@
 - name: Enable firewall
   become: yes
   shell: firewall-cmd --reload
+
+- name: Copy sshd_config to host
+  become: yes
+  template:
+    owner: root
+    group: root
+    mode: 0644
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+
+- name: Restart sshd
+  become: yes
+  service:
+    name: sshd
+    state: restarted
