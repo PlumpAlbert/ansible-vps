@@ -12,7 +12,7 @@
   - name: Install core packages
     become: yes
     apt:
-      name: zsh,git,vim,curl,sudo
+      name: zsh,git,neovim,curl,sudo
 
   - name: Create `wheel` group
     become: true
