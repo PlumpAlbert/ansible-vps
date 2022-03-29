@@ -2,6 +2,6 @@
 
 ## TODO list
 
-- [ ] Create `ansible` user with no password authentication;
-- [ ] Install essential packages;
+- [x] Create `ansible` user with no password authentication;
+- [x] Install essential packages;
 - [ ] Manage server security;

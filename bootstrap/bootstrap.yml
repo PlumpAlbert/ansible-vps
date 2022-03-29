@@ -20,6 +20,7 @@
       name: wheel
 
   - name: Create sudoers directory
+    become: true
     shell:
       executable: /usr/bin/sh
       cmd: mkdir -p /etc/sudoers.d
@@ -38,7 +39,6 @@
     become: yes
     user:
       name: ansible
-      password: "{{ '1Udmi1a$tE1Fkt|y' | password_hash('sha512') }}"
       shell: /usr/bin/zsh
       group: wheel
 
