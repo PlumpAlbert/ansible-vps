@@ -28,3 +28,18 @@
     name: nginx
     enabled: yes
     state:  started
+
+- name: Install postgresql
+  tags: web,database
+  become: yes
+  apt:
+    name: postgresql
+    state: latest
+
+- name: Enable postgresql
+  tags: web,database
+  become: yes
+  service:
+    name: postgresql
+    state: started
+    enabled: yes

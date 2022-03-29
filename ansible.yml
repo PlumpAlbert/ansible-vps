@@ -6,4 +6,4 @@
     - security
     - containers
     - webservers
-    # - schedule
+    - schedule

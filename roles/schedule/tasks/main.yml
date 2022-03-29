@@ -2,11 +2,71 @@
 - name: Clone repository code
   tags: web,schedule
   become: yes
-  become_user: www
   git:
     repo: https://github.com/PlumpAlbert/schedule-docker
-    dest: /var/www/schedule
+    dest: /host/{{ user_name }}/projects/schedule
     depth: 1
     recursive: yes
 
+- name: Mount project directory into /var/www/schedule
+  tags: web,schedule
+  become: yes
+  ansible.posix.mount:
+    boot: yes
+    opts: bind
+    src: /host/{{ user_name }}/projects/schedule
+    path: /var/www/schedule
+    state: mounted
+    fstype: none
+
 - name: Copy .env file
+  tags: web,schedule
+  become: yes
+  template:
+    src: env.j2
+    dest: /host/{{ user_name }}/projects/schedule/.env
+    owner: www
+    group: www
+    mode: 0644
+
+- name: Create postgresql `schedule` user
+  tags: web,schedule,database
+  # become: yes
+  # become_user: postgres
+  shell: sudo -u postgres psql -c "do \$\$ begin if not exists (select * from pg_user where usename= 'schedule') then CREATE USER schedule WITH NOCREATEDB NOSUPERUSER NOCREATEROLE LOGIN ENCRYPTED PASSWORD '{{ lookup('password', '/tmp/schedule.db chars=ascii_letters,digits,punctuation') }}'; end if; end \$\$ ;"
+
+- name: Create database for application
+  tags: web,schedule,database
+  become: yes
+  shell: createdb schedule -E='utf-8' -l='en_US.utf8' -T template0 --lc-collate=en_US.utf-8 --lc-ctype=en_US.utf-8 -O schedule
+
+- name: Create docker image
+  tags: web,schedule,containers
+  become: yes
+  shell: docker build --compress --rm --tag schedule:$(date +%FT%T | tr ':' '-') --tag schedule:latest /var/www/schedule
+
+- name: Create docker container
+  tags: web,schedule,containers
+  become: yes
+  shell: docker container create --publish {{ schedule_fpm_port }}:9000 --env-file /var/www/.env --restart always --name schedule-app schedule:latest
+
+- name: Get container's IP address
+  tags: web,schedule,containers
+  become: yes
+  shell: docker inspect -f '\{\{range.NetworkSettings.Networks\}\}\{\{.IPAddress\}\}\{\{end\}\}' container_name_or_id
+  register: docker_schedule_ip
+
+- name: Copy nginx site configuration
+  tags: web,schedule
+  become: yes
+  template:
+    mode: 0644
+    owner: root
+    group: root
+    src: nginx.j2
+    dest: /etc/nginx/conf.d/schedule.conf
+
+- name: Start docker container
+  tags: web,schedule,containers
+  become: yes
+  shell: docker container start schedule-app
