@@ -31,6 +31,6 @@
   copy:
     src: zshrc
     dest: "/home/{{ user_name }}/.zshrc"
-    owner: plump
+    owner: "{{ user_name }}"
     group: users
-    mode: 0754
+    mode: 0755
