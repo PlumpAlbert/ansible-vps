@@ -1,0 +1,12 @@
+# vim:ft=yaml.ansible
+- name: Clone repository code
+  tags: web,schedule
+  become: yes
+  become_user: www
+  git:
+    repo: https://github.com/PlumpAlbert/schedule-docker
+    dest: /var/www/schedule
+    depth: 1
+    recursive: yes
+
+- name: Copy .env file
