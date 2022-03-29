@@ -1,3 +1,26 @@
+# vim:ft=yaml.ansible
+- name: Create www user
+  tags: web,base
+  group:
+    name: www
+
+- name: Create www user
+  tags: web,base
+  user:
+    create_home: no
+    group: www
+    name: www
+
+- name: Create /var/www directory
+  tags: web,base
+  become: yes
+  file:
+    path: /var/www
+    state: directory
+    owner: www
+    group: www
+    mode: 0755
+
 - name: Install nginx
   become: yes
   apt:
