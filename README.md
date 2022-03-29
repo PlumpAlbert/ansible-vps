@@ -4,5 +4,7 @@
 
 - [x] Create `ansible` user with no password authentication;
 - [x] Install essential packages;
-- [ ] Manage server security;
+- [x] Manage server security;
 - [x] Create user;
+- [x] Install docker and configure it;
+- [x] Install nginx and configure it;
