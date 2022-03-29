@@ -26,7 +26,7 @@
       cmd: mkdir -p /etc/sudoers.d
       creates: /etc/sudoers.d
 
-  - name: Copy sudoers file for `sudo` group
+  - name: Copy sudoers file for `wheel` group
     become: true
     copy:
       src: 10-wheel
