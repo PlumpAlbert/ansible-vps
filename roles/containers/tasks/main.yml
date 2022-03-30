@@ -41,6 +41,7 @@
   tags: containers
   become: true
   uri:
+    creates: /usr/local/bin/docker-compose
     url: https://github.com/docker/compose/releases/download/v2.3.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
     dest: /usr/local/bin/docker-compose
     mode: 0755
