@@ -28,7 +28,7 @@
     mode: 0644
     src: docker.list.j2
 
-- name: Update package index
+- name: Install docker
   tags: containers
   become: true
   apt:
@@ -36,7 +36,7 @@
     name: docker-ce,docker-ce-cli,containerd.io
     update_cache: true
 
-- name: Add docker service to autostart
+- name: Add docker service to autostart and start it
   tags: containers
   become: true
   service:
@@ -44,7 +44,7 @@
     enabled: yes
     state: started
 
-- name: Add containerd service to autostart
+- name: Add containerd service to autostart and start it
   tags: containers
   become: true
   service:
