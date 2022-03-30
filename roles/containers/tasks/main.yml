@@ -15,6 +15,7 @@
 - name: Find out server's architecture
   tags: containers
   become: true
+  changed_when: false
   shell: dpkg --print-architecture
   register: deb_architecture
 
