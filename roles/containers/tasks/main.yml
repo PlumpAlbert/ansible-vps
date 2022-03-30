@@ -36,6 +36,16 @@
     name: docker-ce,docker-ce-cli,containerd.io
     update_cache: true
 
+- name: Install docker-compose
+  tags: containers
+  become: true
+  uri:
+    url: https://github.com/docker/compose/releases/download/v2.3.2/docker-compose-{{ ansible_system }}-{{ ansible_machine }}
+    dest: /usr/local/bin/docker-compose
+    mode: 0755
+    owner: root
+    group: root
+
 - name: Add docker service to autostart and start it
   tags: containers
   become: true
