@@ -45,14 +45,14 @@
   tags: web,schedule,database
   become: true
   become_user: postgres
-  shell: psql -lqt | cut -d \| -f 1 | grep -qw "{{ schedule_database_name }}" || true
+  shell: psql -lqt | cut -d \| -f 1 | grep -w "{{ schedule_database_name }}" || true
   register: schedule_database_exists
   changed_when: false
 
 
 - name: Create database for application
   tags: web,schedule,database
-  when: schedule_database_exists.stdout != ''
+  when: schedule_database_exists.stdout == ""
   become: yes
   become_user: postgres
   shell: createdb {{ schedule_database_name }} -E='utf-8' -l en_US.UTF-8 -T template0 -O {{ schedule_database_username }}
