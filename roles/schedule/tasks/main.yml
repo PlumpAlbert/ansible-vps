@@ -57,6 +57,22 @@
   become_user: postgres
   shell: createdb {{ schedule_database_name }} -E='utf-8' -l en_US.UTF-8 -T template0 -O {{ schedule_database_username }}
 
+- name: Copy dump data
+  tags: restore
+  become: true
+  copy:
+    src: dump
+    dest: /var/www/schedule/dump
+    owner: postgres
+    group: root
+    mode: 0644
+
+- name: Restore data from dump
+  tags: restore
+  become: true
+  become_user: postgres
+  shell: psql -d {{ schedule_database_name }} -f /var/www/schedule/dump
+
 - name: Get docker host IP address
   tags: web,schedule,containers
   become: yes

@@ -1,0 +1,641 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 12.9 (Ubuntu 12.9-0ubuntu0.20.04.1)
+-- Dumped by pg_dump version 12.9 (Ubuntu 12.9-0ubuntu0.20.04.1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: schedule; Type: DATABASE; Schema: -; Owner: postgres
+--
+
+CREATE DATABASE schedule WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
+
+
+ALTER DATABASE schedule OWNER TO postgres;
+
+\connect schedule
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: fun_group_specialty_acronym(character varying, integer); Type: FUNCTION; Schema: public; Owner: schedule
+--
+
+CREATE FUNCTION public.fun_group_specialty_acronym(specialty character varying, year integer) RETURNS character varying
+    LANGUAGE plpgsql IMMUTABLE
+    AS $$
+BEGIN
+  RETURN CONCAT_WS(
+    '',
+    UPPER (regexp_replace(specialty,'(?<=[А-я]).','','g') COLLATE "en_US"),
+    '-',
+    right(CAST(year AS VARCHAR), 2)
+  );
+END
+$$;
+
+
+ALTER FUNCTION public.fun_group_specialty_acronym(specialty character varying, year integer) OWNER TO schedule;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: groups; Type: TABLE; Schema: public; Owner: schedule
+--
+
+CREATE TABLE public.groups (
+    id bigint NOT NULL,
+    faculty character varying(255) NOT NULL,
+    specialty character varying(255) NOT NULL,
+    year smallint NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+ALTER TABLE public.groups OWNER TO schedule;
+
+--
+-- Name: groups_id_seq; Type: SEQUENCE; Schema: public; Owner: schedule
+--
+
+CREATE SEQUENCE public.groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.groups_id_seq OWNER TO schedule;
+
+--
+-- Name: groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: schedule
+--
+
+ALTER SEQUENCE public.groups_id_seq OWNED BY public.groups.id;
+
+
+--
+-- Name: migrations; Type: TABLE; Schema: public; Owner: schedule
+--
+
+CREATE TABLE public.migrations (
+    id integer NOT NULL,
+    migration character varying(255) NOT NULL,
+    batch integer NOT NULL
+);
+
+
+ALTER TABLE public.migrations OWNER TO schedule;
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: schedule
+--
+
+CREATE SEQUENCE public.migrations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.migrations_id_seq OWNER TO schedule;
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: schedule
+--
+
+ALTER SEQUENCE public.migrations_id_seq OWNED BY public.migrations.id;
+
+
+--
+-- Name: personal_access_tokens; Type: TABLE; Schema: public; Owner: schedule
+--
+
+CREATE TABLE public.personal_access_tokens (
+    id bigint NOT NULL,
+    tokenable_type character varying(255) NOT NULL,
+    tokenable_id bigint NOT NULL,
+    name character varying(255) NOT NULL,
+    token character varying(64) NOT NULL,
+    abilities text,
+    last_used_at timestamp(0) without time zone,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+ALTER TABLE public.personal_access_tokens OWNER TO schedule;
+
+--
+-- Name: personal_access_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: schedule
+--
+
+CREATE SEQUENCE public.personal_access_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.personal_access_tokens_id_seq OWNER TO schedule;
+
+--
+-- Name: personal_access_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: schedule
+--
+
+ALTER SEQUENCE public.personal_access_tokens_id_seq OWNED BY public.personal_access_tokens.id;
+
+
+--
+-- Name: subjects; Type: TABLE; Schema: public; Owner: schedule
+--
+
+CREATE TABLE public.subjects (
+    id bigint NOT NULL,
+    audience character varying(255) NOT NULL,
+    type smallint NOT NULL,
+    title character varying(255) NOT NULL,
+    "time" time(0) without time zone NOT NULL,
+    weekday smallint NOT NULL,
+    weektype smallint NOT NULL,
+    teacher_id bigint NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+ALTER TABLE public.subjects OWNER TO schedule;
+
+--
+-- Name: subjects_id_seq; Type: SEQUENCE; Schema: public; Owner: schedule
+--
+
+CREATE SEQUENCE public.subjects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.subjects_id_seq OWNER TO schedule;
+
+--
+-- Name: subjects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: schedule
+--
+
+ALTER SEQUENCE public.subjects_id_seq OWNED BY public.subjects.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: schedule
+--
+
+CREATE TABLE public.users (
+    id bigint NOT NULL,
+    name character varying(255) NOT NULL,
+    login character varying(255) NOT NULL,
+    password character varying(256) NOT NULL,
+    type smallint NOT NULL,
+    group_id bigint,
+    remember_token character varying(100),
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+ALTER TABLE public.users OWNER TO schedule;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: schedule
+--
+
+CREATE SEQUENCE public.users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.users_id_seq OWNER TO schedule;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: schedule
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: visits; Type: TABLE; Schema: public; Owner: schedule
+--
+
+CREATE TABLE public.visits (
+    id bigint NOT NULL,
+    group_id bigint NOT NULL,
+    subject_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.visits OWNER TO schedule;
+
+--
+-- Name: visits_id_seq; Type: SEQUENCE; Schema: public; Owner: schedule
+--
+
+CREATE SEQUENCE public.visits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.visits_id_seq OWNER TO schedule;
+
+--
+-- Name: visits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: schedule
+--
+
+ALTER SEQUENCE public.visits_id_seq OWNED BY public.visits.id;
+
+
+--
+-- Name: groups id; Type: DEFAULT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.groups ALTER COLUMN id SET DEFAULT nextval('public.groups_id_seq'::regclass);
+
+
+--
+-- Name: migrations id; Type: DEFAULT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.migrations ALTER COLUMN id SET DEFAULT nextval('public.migrations_id_seq'::regclass);
+
+
+--
+-- Name: personal_access_tokens id; Type: DEFAULT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.personal_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.personal_access_tokens_id_seq'::regclass);
+
+
+--
+-- Name: subjects id; Type: DEFAULT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.subjects ALTER COLUMN id SET DEFAULT nextval('public.subjects_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: visits id; Type: DEFAULT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.visits ALTER COLUMN id SET DEFAULT nextval('public.visits_id_seq'::regclass);
+
+
+--
+-- Data for Name: groups; Type: TABLE DATA; Schema: public; Owner: schedule
+--
+
+COPY public.groups (id, faculty, specialty, year, created_at, updated_at) FROM stdin;
+1	ФАИ	Программная инженерия	2016	2022-01-06 15:24:19	2022-01-06 15:24:19
+2	ФАИ	Программная инженерия	2018	2022-01-08 07:15:45	2022-01-08 07:15:45
+\.
+
+
+--
+-- Data for Name: migrations; Type: TABLE DATA; Schema: public; Owner: schedule
+--
+
+COPY public.migrations (id, migration, batch) FROM stdin;
+1	2012_01_04_052354_create_groups_table	1
+2	2014_10_12_000000_create_users_table	1
+3	2019_12_14_000001_create_personal_access_tokens_table	1
+4	2022_01_04_053453_create_subjects_table	1
+5	2022_01_04_103620_create_visits_table	1
+\.
+
+
+--
+-- Data for Name: personal_access_tokens; Type: TABLE DATA; Schema: public; Owner: schedule
+--
+
+COPY public.personal_access_tokens (id, tokenable_type, tokenable_id, name, token, abilities, last_used_at, created_at, updated_at) FROM stdin;
+8	App\\Models\\User	1	plump_albert	1f806f04ca222c1815b9ed026bf672c3673b9bc95be7dede6739f382301f11ce	["admin"]	\N	2022-01-06 16:32:20	2022-01-06 16:32:20
+13	App\\Models\\User	1	plump_albert	c63166b48814d2625628491dd233ed6561df7e9a4bf7a04ea345282bf7c971d2	["user"]	2022-01-06 16:43:23	2022-01-06 16:41:52	2022-01-06 16:43:23
+14	App\\Models\\User	1	plump_albert	2beb525065e16b5bb07e18cb8f417c0bc4a387f2d25fdf3712e4f58fc0f7157e	["user","admin"]	\N	2022-01-08 06:11:15	2022-01-08 06:11:15
+15	App\\Models\\User	1	plump_albert	637049318a078d0ad5525b430ec8d3540069480f7dbb84814f50eb1eb81fcc01	["user","admin"]	\N	2022-01-08 09:58:25	2022-01-08 09:58:25
+16	App\\Models\\User	1	plump_albert	52c30b3a1388c41a0000c214ca29da72ac4efebb1df97d6a2db02dd4b8145303	["user","admin"]	\N	2022-01-08 09:58:38	2022-01-08 09:58:38
+17	App\\Models\\User	1	plump_albert	55390213bd0ead9763c8fd3dfc430b56653b7473123b925d1b73b1b8517388d6	["user","admin"]	\N	2022-01-08 10:05:29	2022-01-08 10:05:29
+18	App\\Models\\User	1	plump_albert	fef519960c31f8e769eb18786e36247980c8a56472eef5057eb1325bbaa56c94	["user","admin"]	\N	2022-01-08 15:04:03	2022-01-08 15:04:03
+19	App\\Models\\User	1	plump_albert	f5b469111ac68417374c07f69435d224b8f464f22bc5628c85cfe391f42aa045	["user","admin"]	\N	2022-01-08 15:41:01	2022-01-08 15:41:01
+20	App\\Models\\User	1	plump_albert	ade723ef9b8abc9f6dd00e84cc9c7fbd4a3318e2ed85465f7e0490be4d2d8c89	["user","admin"]	\N	2022-01-09 03:37:35	2022-01-09 03:37:35
+21	App\\Models\\User	1	plump_albert	937aa32a33809995ce59b489fd015aba512129ef3de6925464feb2f83dc512b1	["user","admin"]	\N	2022-01-09 03:41:47	2022-01-09 03:41:47
+22	App\\Models\\User	1	plump_albert	e25d9168b9c0df3b82fb353922f470c47ad1ed25da250036768ee29874c64e57	["user","admin"]	\N	2022-01-09 03:42:22	2022-01-09 03:42:22
+23	App\\Models\\User	1	plump_albert	ddea3f0215daba13a8419303fc5f7a204ecd5019733e75b195a8f4674c3fcb20	["user","admin"]	\N	2022-01-09 03:50:27	2022-01-09 03:50:27
+24	App\\Models\\User	1	plump_albert	7dc56a306ac8539397acb1ff78e79d5233a820dfaddf705dd18100dba340ba5e	["user","admin"]	\N	2022-01-09 03:57:59	2022-01-09 03:57:59
+25	App\\Models\\User	1	plump_albert	176571fd7a7ce35eed71e40c3aa6dc7e7634bffeaec003f9d4ec8cc885edc124	["user","admin"]	\N	2022-01-09 10:58:29	2022-01-09 10:58:29
+26	App\\Models\\User	1	plump_albert	813629a99d900002829cf357800ce50ba701ebe885e64bf0b35fd35b5adfbdc6	["user","admin"]	\N	2022-01-09 19:28:56	2022-01-09 19:28:56
+27	App\\Models\\User	1	plump_albert	fc29d6749c5694818c9191ad458f8b21e732c61bfcaf5b439663949b64c7e2ab	["user","admin"]	2022-01-10 18:15:42	2022-01-10 13:33:08	2022-01-10 18:15:42
+28	App\\Models\\User	1	plump_albert	6372e5944bad4bf6515975d02c70fbdf2dcdd4c3a6b68dc68110ec8235330dc3	["user","admin"]	\N	2022-01-10 20:10:41	2022-01-10 20:10:41
+29	App\\Models\\User	1	plump_albert	a5cf3f9b7bea367bc7649b9f29c9fd20ba1e6ea2747850cac83a21eaeb62953e	["user","admin"]	\N	2022-01-11 07:51:31	2022-01-11 07:51:31
+30	App\\Models\\User	1	plump_albert	c0a4b9153a2224953047b40baaa45859f5401e0653951a0156b23eef697f9320	["user","admin"]	\N	2022-01-12 05:16:28	2022-01-12 05:16:28
+31	App\\Models\\User	1	plump_albert	10845a87aa2306e334df4dad9bd94e0e3f4f35c6d72bb71dabb3066ec8c1aba4	["user","admin"]	\N	2022-02-06 21:14:34	2022-02-06 21:14:34
+32	App\\Models\\User	1	plump_albert	041122685d10ecfca01f8df12360834158059c60a20eb1e464703dec5cda9dac	["user","admin"]	\N	2022-02-06 21:38:33	2022-02-06 21:38:33
+33	App\\Models\\User	1	plump_albert	25960c0208357edb1da8d6baeaee3f7bba2d88686a2d1fa1815fdef5dc23b602	["user","admin"]	\N	2022-02-09 08:25:01	2022-02-09 08:25:01
+34	App\\Models\\User	1	plump_albert	099c97cf7e20d2c7fed357fe196f5c1870f44435905d5024b6ad72b463c8acd5	["user","admin"]	\N	2022-02-10 15:56:18	2022-02-10 15:56:18
+35	App\\Models\\User	1	plump_albert	7e32692bb30616d04b8876c3530158ae340741cc7dde06b77d0d73ba4413cf41	["user","admin"]	\N	2022-02-13 13:08:16	2022-02-13 13:08:16
+36	App\\Models\\User	1	plump_albert	a314eca69bdf779e01ff582c1ee811937fde77aeae0108a9149269926cdad0f6	["user","admin"]	\N	2022-02-15 18:56:26	2022-02-15 18:56:26
+37	App\\Models\\User	1	plump_albert	427d872410179294347c20360a18ea3314f10d34adb5342a10f70840a3c3d50e	["user","admin"]	\N	2022-02-18 11:45:20	2022-02-18 11:45:20
+38	App\\Models\\User	1	plump_albert	4dfe4a4f567fd82b84cc3ab8ef5717fc19fe20b61c2779e3122a8149c35c984f	["user","admin"]	\N	2022-02-24 16:02:54	2022-02-24 16:02:54
+39	App\\Models\\User	1	plump_albert	cffe0c11e969b2f512291cd038ddb9db66faf63f1b473c042dfecb235308a50e	["user","admin"]	\N	2022-03-03 11:46:34	2022-03-03 11:46:34
+40	App\\Models\\User	1	plump_albert	47be73371689dc376759d2eb20317ef650d1568e21537e4297c34713fae62413	["user","admin"]	\N	2022-03-13 13:49:58	2022-03-13 13:49:58
+\.
+
+
+--
+-- Data for Name: subjects; Type: TABLE DATA; Schema: public; Owner: schedule
+--
+
+COPY public.subjects (id, audience, type, title, "time", weekday, weektype, teacher_id, created_at, updated_at) FROM stdin;
+5	353	1	Жизненный цикл программного обеспечения	13:20:00	2	1	2	2022-01-08 06:15:46	2022-01-08 06:15:46
+44	353	2	Защита информации	11:20:00	1	1	11	2022-02-06 21:24:04	2022-02-06 21:24:04
+45	353	2	Защита информации	11:20:00	1	0	11	2022-02-06 21:24:04	2022-02-06 21:24:04
+46	351	1	Защита информации	15:00:00	5	0	11	2022-02-06 21:24:40	2022-02-06 21:24:40
+47	219	0	Архитектура программных систем	15:00:00	4	0	12	2022-02-06 21:25:50	2022-02-06 21:25:50
+48	219	0	Архитектура программных систем	15:00:00	4	1	12	2022-02-06 21:25:50	2022-02-06 21:25:50
+50	353	2	Архитектура программных систем	13:20:00	1	0	12	2022-02-06 21:27:48	2022-02-06 21:27:48
+41	255	0	Защита информации	13:20:00	4	0	11	2022-02-06 21:23:11	2022-02-06 21:23:11
+42	255	0	Защита информации	16:40:00	5	0	11	2022-02-06 21:23:11	2022-02-06 21:23:11
+43	255	0	Защита информации	16:40:00	5	1	11	2022-02-06 21:23:11	2022-02-06 21:23:11
+51	353	2	Архитектура программных систем	13:20:00	1	1	12	2022-02-06 21:27:48	2022-02-06 21:27:48
+52	Л-4	0	Экономико-правовые основы рынка программного обеспечения	15:00:00	1	0	4	2022-02-06 21:29:05	2022-02-06 21:29:05
+53	Л-4	0	Экономико-правовые основы рынка программного обеспечения	15:00:00	1	1	4	2022-02-06 21:29:05	2022-02-06 21:29:05
+54	353	1	Экономико-правовые основы рынка программного обеспечения	13:20:00	5	1	4	2022-02-06 21:29:47	2022-02-06 21:29:47
+55	360	1	Экономико-правовые основы рынка программного обеспечения	15:00:00	5	1	4	2022-02-06 21:29:47	2022-02-06 21:29:47
+56	349	0	Управление программными проектами	16:40:00	1	1	4	2022-02-06 21:30:39	2022-02-06 21:30:39
+57	349	0	Управление программными проектами	16:40:00	1	0	4	2022-02-06 21:30:39	2022-02-06 21:30:39
+60	350	0	Качество программного обеспечения	13:20:00	3	1	13	2022-02-06 21:31:58	2022-02-06 21:31:58
+61	350	0	Качество программного обеспечения	13:20:00	3	0	13	2022-02-06 21:31:58	2022-02-06 21:31:58
+62	357	2	Качество программного обеспечения	18:35:00	5	0	13	2022-02-06 21:40:12	2022-02-06 21:40:12
+63	357	2	Качество программного обеспечения	18:35:00	5	1	13	2022-02-06 21:40:12	2022-02-06 21:40:12
+49	353	1	Архитектура программных систем	16:40:00	4	1	12	2022-02-06 21:26:25	2022-02-06 21:41:54
+59	350	2	Управление программными проектами	11:20:00	3	0	4	2022-02-06 21:31:08	2022-02-06 21:42:24
+58	350	2	Управление программными проектами	11:20:00	3	1	4	2022-02-06 21:31:08	2022-02-06 21:42:24
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: schedule
+--
+
+COPY public.users (id, name, login, password, type, group_id, remember_token, created_at, updated_at) FROM stdin;
+2	Назаркин Олег Александрович	CpNktmKsIuAMUopybUUyZcyjbJQhvjll	$2y$10$i2ls5Q50HaxmFX8sijpiwevJgxlxqjeBaEZvu3m81PomGc5qRpVmW	1	\N	\N	2022-01-06 15:24:56	2022-01-06 15:24:56
+3	Домашнев Павел Алексеевич	wzrZWOamVToaXeCcJZPtAWQsoSszaIMC	$2y$10$CkSvCqm.emkAeinfXu3DqOr8RKlcbUuDYxvL96Jq9BCPqJGhWXZ2.	1	\N	\N	2022-01-06 15:24:57	2022-01-06 15:24:57
+4	Ведищев Виталий Викторович	KqhdzZrbEMNNKDEcmiXxYFbSJnbzlrdX	$2y$10$Z5jbrqmmX2eHuxFABsv8DuJzFmUljdjTrWTWM4ZlbNZOhkGP5HGCW	1	\N	\N	2022-01-06 15:24:58	2022-01-06 15:24:58
+5	Кургасов Василий Владимирович	jIOgVjubgKJNUzjAmXQmuzodtrgHSbWf	$2y$10$NpoRiU07XhsCVCLuDMhaeuekOVY33NrDDRWjSl.1Dl7DiX0bsUYG2	1	\N	\N	2022-01-06 15:24:59	2022-01-06 15:24:59
+6	Бочарникова Оксана Александровна	XrfYUbHFemDMlaHnTQZKcvQvdyibxPTV	$2y$10$A5ArvLWDmLYfUy2.08yjgeYfPtlsVoS6JdTjGWg7u4RgH3FkiP5Vq	1	\N	\N	2022-01-06 15:25:00	2022-01-06 15:25:00
+7	Мыздрикова Екатерина Александровна	kRLQUHNVFAWTOiGSARnKrJEWvBJUIyMp	$2y$10$OmfW9mjt4wHw2gdxqfGndeXMtBlR9.jzI6Xf6aitMYoouftEePy.S	1	\N	\N	2022-01-06 15:25:01	2022-01-06 15:25:01
+8	Качановский Юрий Петрович	KwwZFTwvRRGxwbZncsBPIFHZiaamXpMF	$2y$10$wFocDEmxLhIlCXe8j1qVNet1ZYHVO8Uav8EwWj1Vde5i/hurO0dgq	1	\N	\N	2022-01-06 15:25:02	2022-01-06 15:25:02
+9	Самсонов Андрей Николаевич	vkRdMFmZFNpYezLAYRsnNjxcHYFECWZH	$2y$10$JRAC6J9sLRBFZJvPAYF0L.DNinaW5ZvjB385ezD1IlWvooQx.Tb/a	1	\N	\N	2022-01-06 15:25:03	2022-01-06 15:25:03
+1	Plump Albert	plump_albert	$2y$10$PstcBydFQBp9De29rGpWNOfqBX6733Su6mk2f5n/ft8S72mAljtv.	2	2	0vFO4MaJylcGwzNYj19n7GuLx5lR1KLQL04iZlm0YM9Wu1xQMk3XD4FZUCPi	2022-01-06 15:24:27	2022-01-08 15:41:23
+11	Батищев Роман Вячеславович	batishev	qwe	1	\N	\N	\N	\N
+12	Алексеев Владимир Александрович	alexeev	qwe	1	\N	\N	\N	\N
+13	Муравейко Александр Юрьевич	murav	qwe	1	\N	\N	\N	\N
+\.
+
+
+--
+-- Data for Name: visits; Type: TABLE DATA; Schema: public; Owner: schedule
+--
+
+COPY public.visits (id, group_id, subject_id) FROM stdin;
+5	1	5
+41	2	42
+42	2	41
+43	2	43
+44	2	44
+45	2	45
+46	2	46
+47	2	48
+48	2	47
+49	2	49
+50	2	50
+51	2	51
+52	2	52
+53	2	53
+54	2	54
+55	2	55
+56	2	56
+57	2	57
+58	2	58
+59	2	59
+60	2	60
+61	2	61
+62	2	62
+63	2	63
+\.
+
+
+--
+-- Name: groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: schedule
+--
+
+SELECT pg_catalog.setval('public.groups_id_seq', 3, true);
+
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: schedule
+--
+
+SELECT pg_catalog.setval('public.migrations_id_seq', 5, true);
+
+
+--
+-- Name: personal_access_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: schedule
+--
+
+SELECT pg_catalog.setval('public.personal_access_tokens_id_seq', 40, true);
+
+
+--
+-- Name: subjects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: schedule
+--
+
+SELECT pg_catalog.setval('public.subjects_id_seq', 63, true);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: schedule
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 13, true);
+
+
+--
+-- Name: visits_id_seq; Type: SEQUENCE SET; Schema: public; Owner: schedule
+--
+
+SELECT pg_catalog.setval('public.visits_id_seq', 63, true);
+
+
+--
+-- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: migrations migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.migrations
+    ADD CONSTRAINT migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: personal_access_tokens personal_access_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.personal_access_tokens
+    ADD CONSTRAINT personal_access_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: personal_access_tokens personal_access_tokens_token_unique; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.personal_access_tokens
+    ADD CONSTRAINT personal_access_tokens_token_unique UNIQUE (token);
+
+
+--
+-- Name: subjects subjects_pkey; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.subjects
+    ADD CONSTRAINT subjects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_login_unique; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_login_unique UNIQUE (login);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: visits visits_group_id_subject_id_unique; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.visits
+    ADD CONSTRAINT visits_group_id_subject_id_unique UNIQUE (group_id, subject_id);
+
+
+--
+-- Name: visits visits_pkey; Type: CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.visits
+    ADD CONSTRAINT visits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: personal_access_tokens_tokenable_type_tokenable_id_index; Type: INDEX; Schema: public; Owner: schedule
+--
+
+CREATE INDEX personal_access_tokens_tokenable_type_tokenable_id_index ON public.personal_access_tokens USING btree (tokenable_type, tokenable_id);
+
+
+--
+-- Name: subjects subjects_teacher_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.subjects
+    ADD CONSTRAINT subjects_teacher_id_foreign FOREIGN KEY (teacher_id) REFERENCES public.users(id);
+
+
+--
+-- Name: users users_group_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_group_id_foreign FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
+-- Name: visits visits_group_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.visits
+    ADD CONSTRAINT visits_group_id_foreign FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
+
+
+--
+-- Name: visits visits_subject_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: schedule
+--
+
+ALTER TABLE ONLY public.visits
+    ADD CONSTRAINT visits_subject_id_foreign FOREIGN KEY (subject_id) REFERENCES public.subjects(id) ON DELETE CASCADE;
+
+
+--
+-- Name: DATABASE schedule; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT ALL ON DATABASE schedule TO schedule;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
