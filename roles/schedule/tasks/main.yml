@@ -101,3 +101,18 @@
     group: root
     src: nginx.j2
     dest: /etc/nginx/sites-available/schedule.conf
+
+- name: Enable site
+  tags: web,schedule
+  become: true
+  file:
+    state: link
+    src: /etc/nginx/sites-available/schedule.conf
+    path: /etc/nginx/sites-enabled/schedule.conf
+
+- name: Reload nginx
+  tags: web,schedule
+  become: true
+  service:
+    name: nginx
+    state: reloaded
