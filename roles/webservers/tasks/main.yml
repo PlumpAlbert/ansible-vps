@@ -21,6 +21,13 @@
     name: nginx
     state: latest
 
+- name: Disable default nginx site
+  tags: web
+  become: true
+  file:
+    state: absent
+    path: /etc/nginx/sites-enabled/default
+
 - name: Enable nginx service
   tags: web
   become: yes
