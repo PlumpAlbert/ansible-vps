@@ -45,7 +45,7 @@
   tags: web,schedule,database
   become: true
   become_user: postgres
-  shell: psql -lqt | cut -d \| -f 1 | grep -qw "{{ schedule_database_name }}"
+  shell: psql -lqt | cut -d \| -f 1 | grep -qw "{{ schedule_database_name }}" || true
   register: schedule_database_exists
   changed_when: false
 
