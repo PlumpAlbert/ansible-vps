@@ -4,57 +4,93 @@
   become: yes
   git:
     repo: https://github.com/PlumpAlbert/schedule-docker
-    dest: /host/{{ user_name }}/projects/schedule
+    dest: /var/www/schedule
     depth: 1
     recursive: yes
 
-- name: Mount project directory into /var/www/schedule
-  tags: web,schedule
+- name: Get docker host IP address
+  tags: web,containers,schedule
   become: yes
-  ansible.posix.mount:
-    boot: yes
-    opts: bind
-    src: /host/{{ user_name }}/projects/schedule
-    path: /var/www/schedule
-    state: mounted
-    fstype: none
+  shell: ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+'
+  register: docker_host_ip
+  changed_when: false
 
-- name: Copy .env file
+- name: Copy .env file into application root
   tags: web,schedule
   become: yes
   template:
     src: env.j2
-    dest: /host/{{ user_name }}/projects/schedule/.env
+    dest: /var/www/schedule/www/.env
+    owner: www
+    group: www
+    mode: 0644
+
+- name: Copy .env file into docker context
+  tags: web,schedule
+  become: yes
+  template:
+    src: env.j2
+    dest: /var/www/schedule/.env
     owner: www
     group: www
     mode: 0644
 
 - name: Create postgresql `schedule` user
   tags: web,schedule,database
-  # become: yes
-  # become_user: postgres
-  shell: sudo -u postgres psql -c "do \$\$ begin if not exists (select * from pg_user where usename= 'schedule') then CREATE USER schedule WITH NOCREATEDB NOSUPERUSER NOCREATEROLE LOGIN ENCRYPTED PASSWORD '{{ lookup('password', '/tmp/schedule.db chars=ascii_letters,digits,punctuation') }}'; end if; end \$\$ ;"
+  become: true
+  become_user: postgres
+  shell: psql -c "do \$\$ begin if not exists (select * from pg_user where usename= '{{ schedule_database_username }}') then CREATE USER {{ schedule_database_username }} WITH NOCREATEDB NOSUPERUSER NOCREATEROLE LOGIN ENCRYPTED PASSWORD '{{ schedule_database_password }}'; end if; end \$\$ ;"
+
+- name: Check if database is created
+  tags: web,schedule,database
+  become: true
+  become_user: postgres
+  shell: psql -lqt | cut -d \| -f 1 | grep -qw "{{ schedule_database_name }}"
+  register: schedule_database_exists
+  changed_when: false
+
 
 - name: Create database for application
   tags: web,schedule,database
+  when: schedule_database_exists.stdout != ''
   become: yes
-  shell: createdb schedule -E='utf-8' -l='en_US.utf8' -T template0 --lc-collate=en_US.utf-8 --lc-ctype=en_US.utf-8 -O schedule
+  become_user: postgres
+  shell: createdb {{ schedule_database_name }} -E='utf-8' -l en_US.UTF-8 -T template0 -O {{ schedule_database_username }}
+
+- name: Get docker host IP address
+  tags: web,schedule,containers
+  become: yes
+  shell: ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+'
+  register: docker_host_ip
+  changed_when: false
 
 - name: Create docker image
   tags: web,schedule,containers
   become: yes
   shell: docker build --compress --rm --tag schedule:$(date +%FT%T | tr ':' '-') --tag schedule:latest /var/www/schedule
 
+- name: Delete old docker container
+  tags: web,schedule,containers
+  become: yes
+  shell: docker stop schedule-app || true && docker rm schedule-app || true
+  changed_when: false
+
 - name: Create docker container
   tags: web,schedule,containers
   become: yes
-  shell: docker container create --publish {{ schedule_fpm_port }}:9000 --env-file /var/www/.env --restart always --name schedule-app schedule:latest
+  shell: docker container create --env-file /var/www/schedule/.env --restart always --name schedule-app schedule:latest
+
+- name: Start docker container
+  tags: web,schedule,containers
+  become: yes
+  shell: docker container start schedule-app
 
 - name: Get container's IP address
   tags: web,schedule,containers
   become: yes
-  shell: docker inspect -f '\{\{range.NetworkSettings.Networks\}\}\{\{.IPAddress\}\}\{\{end\}\}' container_name_or_id
+  shell: docker inspect -f "{{ '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' }}" schedule-app
   register: docker_schedule_ip
+  changed_when: false
 
 - name: Copy nginx site configuration
   tags: web,schedule
@@ -64,9 +100,4 @@
     owner: root
     group: root
     src: nginx.j2
-    dest: /etc/nginx/conf.d/schedule.conf
-
-- name: Start docker container
-  tags: web,schedule,containers
-  become: yes
-  shell: docker container start schedule-app
+    dest: /etc/nginx/sites-available/schedule.conf
