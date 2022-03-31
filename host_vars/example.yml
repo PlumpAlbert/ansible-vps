@@ -1,0 +1,13 @@
+# vim:ft=yaml.ansible
+---
+user_name:
+user_password:
+ssh_port:
+hostname:
+schedule_url:
+schedule_database_host:
+schedule_database_port:
+schedule_database_name:
+schedule_database_username:
+schedule_database_password:
+schedule_fpm_port:
