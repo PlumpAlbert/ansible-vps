@@ -58,3 +58,8 @@
   service:
     name: sshd
     state: restarted
+
+- name: Reload firewalld rules
+  tags: security,firewall
+  become: yes
+  shell: firewall-cmd --reload
