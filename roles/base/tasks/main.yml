@@ -2,8 +2,15 @@
   tags: base
   become: true
   copy:
-    content: {{ hostname }}
+    content: "{{ hostname }}"
     dest: /etc/hostname
+
+- name: Install essential packages
+  tags: base
+  become: true
+  apt:
+    update_cache: true
+    name: git,sudo,vim-tiny,zsh
 
 - name: Create `sudo` group
   tags: base
