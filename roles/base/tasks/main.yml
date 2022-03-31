@@ -1,3 +1,10 @@
+- name: Set hostname
+  tags: base
+  become: true
+  copy:
+    content: {{ hostname }}
+    dest: /etc/hostname
+
 - name: Create `sudo` group
   tags: base
   become: yes
