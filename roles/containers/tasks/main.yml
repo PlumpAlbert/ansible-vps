@@ -1,4 +1,4 @@
-- name: Install docker and docker-compose
+- name: Install docker and docker-compose dependencies
   tags: containers
   become: true
   apt:
