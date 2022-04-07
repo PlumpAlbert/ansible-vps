@@ -5,6 +5,19 @@
     content: "{{ hostname }}"
     dest: /etc/hostname
 
+- name: Configure locale.gen file
+  tags: base
+  become: true
+  replace:
+    path: /etc/locale.gen
+    regexp: '^#\s*en_US.UTF-8 UTF-8'
+    replace: "en_US.UTF-8 UTF-8"
+
+- name: Generate locales
+  tags: base
+  become: true
+  shell: locale-gen
+
 - name: Install essential packages
   tags: base
   become: true
