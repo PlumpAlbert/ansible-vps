@@ -49,7 +49,6 @@
   register: schedule_database_exists
   changed_when: false
 
-
 - name: Create database for application
   tags: web,schedule,database
   when: schedule_database_exists.stdout == ""
@@ -72,13 +71,6 @@
   become: true
   become_user: postgres
   shell: psql -d {{ schedule_database_name }} -f /var/www/schedule/dump
-
-- name: Get docker host IP address
-  tags: web,schedule,containers
-  become: yes
-  shell: ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+'
-  register: docker_host_ip
-  changed_when: false
 
 - name: Create docker image
   tags: web,schedule,containers
