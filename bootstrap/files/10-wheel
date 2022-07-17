@@ -1,3 +1,0 @@
-# vim:ft=sudoers
-# Make users of group `wheel` execute any command without password prompt
-%wheel ALL=(ALL:ALL) NOPASSWD: ALL

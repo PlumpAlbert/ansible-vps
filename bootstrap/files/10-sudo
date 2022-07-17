@@ -1,0 +1,3 @@
+# vim:ft=sudoers
+# Make users of group `sudo` execute any command with password prompt
+%sudo ALL=(ALL:ALL) PASSWD: ALL

@@ -1,0 +1,62 @@
+# vim:ft=yaml.ansible:ts=2:et
+---
+- hosts: all
+  tasks:
+  - name: create `sudo` group
+    become: true
+    group:
+      name: sudo
+
+  - name: create remote user
+    become: true
+    user:
+      append: true
+      group: users
+      groups: sudo
+      name: "{{ user_name }}"
+      password: "{{ user_password | password_hash('sha512') }}"
+
+  - name: Setup SSH keys on remote host
+    authorized_key:
+      user: "{{ user_name }}"
+      key: https://github.com/PlumpAlbert.keys
+      path: "/home/{{ user_name }}/.ssh/authorized_keys"
+
+  - name: (Debian) Update system and repository cache
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+    become: true
+    apt:
+      update_cache: true
+      upgrade: dist
+      state: latest
+
+  - name: (AlmaLinux) Update system and repository cache
+    when: ansible_distribution == "AlmaLinux" or ansible_distribution == "CentOS"
+    become: true
+    yum:
+      update_cache: true
+      name: '*'
+      state: latest
+
+  - name: Install core packages
+    become: true
+    package:
+      name: zsh,git,curl,sudo
+
+  - name: Create sudoers directory
+    become: true
+    file:
+      state: directory
+      owner: root
+      group: root
+      mode: 01700
+      path: /etc/sudoers.d
+
+  - name: Copy sudoers file for `sudo` group
+    become: true
+    copy:
+      src: 10-sudo
+      dest: /etc/sudoers.d/10-sudo
+      owner: root
+      group: root
+      mode: 0644
