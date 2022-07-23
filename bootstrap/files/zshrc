@@ -1,0 +1,92 @@
+#!/bin/zsh
+setopt extendedglob
+
+### ANTIGEN
+ANTIGEN_FILE="$HOME/.config/antigen.zsh"
+if ! [ -f "$ANTIGEN_FILE" ]; then
+  mkdir -p "$(dirname "$ANTIGEN_FILE")"
+  echo '# Downloading antigen...'
+  curl -sL 'git.io/antigen' > "$ANTIGEN_FILE"
+fi
+source "$ANTIGEN_FILE"
+antigen reset
+antigen use oh-my-zsh
+antigen bundle colored-man-pages
+antigen bundle colorize
+antigen bundle sudo
+antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle zsh-users/zsh-autosuggestions
+antigen bundle zsh-users/zsh-completions
+antigen bundle zsh-users/zsh-history-substring-search
+## THEMING
+THEME=dst
+antigen list | grep $THEME
+[ $? -ne 0 ] && antigen theme $THEME;
+antigen apply
+
+function gi() {
+	curl -sLw "\n" "https://www.gitignore.io/api/$1"
+}
+function get_color() {
+  [[ "$1" =~ '^[0-9]+$' ]] \
+    && export SEARCH="\\*color$1" \
+    || export SEARCH="$1"
+  xrdb -query | grep -iPo "$SEARCH:\\s*\\K\\#[[:alnum:]]*" | head -n1
+}
+function generate-string() {
+	[ $1 = "-h" ] \
+		&& echo "Usage: generate-string [ STRING_LENGTH ] [ CHARACTERLIST ]" \
+		&& return 1
+	[ -z $1 ] \
+		&& COUNT="32" \
+		|| COUNT="$1"
+	[ -z $2 ] \
+		&& CHARACTERS='A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' \
+		|| CHARACTERS="$2"
+	tr -dc "$CHARACTERS" </dev/urandom | head -c "$COUNT"
+	echo
+}
+function venv() {
+	ROOT="$(pwd)"
+	if ! [ -d "$ROOT/.venv" ]; then
+    PROMPT_NAME="${1:-$(basename "$ROOT")}"
+		python -m venv \
+			--prompt "$PROMPT_NAME" \
+			--system-site-packages \
+			--symlinks \
+			"$ROOT/.venv"
+		if [ -f "$ROOT/requirements.txt" ]; then
+			echo "# Installing dependencies"
+			source "$ROOT/.venv/bin/activate"
+			pip install -r "$ROOT/requirements.txt"
+			return
+		fi
+	fi
+	source "$ROOT/.venv/bin/activate"
+}
+function sail() {
+	systemctl status docker > /dev/null
+	if [ $? -ne 0 ]; then
+		echo "### Starting docker"
+		sudo -S systemctl start docker
+	fi
+	if [ ! -f "vendor/bin/sail" ]; then
+		echo "!!! Not in laravel root directory";
+		return 1;
+	fi
+	. "vendor/bin/sail" $@
+}
+
+function __check_program() {
+	which "$1" >/dev/null 2>&1
+	return $?
+}
+
+__check_program exa \
+	&& alias ls='exa --icons' \
+	|| alias ls='ls --color -hF'
+alias l='ls -lF'
+alias la='ls -aF'
+alias ll='ls -lF'
+alias lla='ls -laF'
+alias lt='ls -T'

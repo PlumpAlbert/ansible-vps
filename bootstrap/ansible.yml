@@ -7,20 +7,12 @@
     group:
       name: sudo
 
-  - name: create remote user
+  - name: Set hostname
+    tags: base
     become: true
-    user:
-      append: true
-      group: users
-      groups: sudo
-      name: "{{ user_name }}"
-      password: "{{ user_password | password_hash('sha512') }}"
-
-  - name: Setup SSH keys on remote host
-    authorized_key:
-      user: "{{ user_name }}"
-      key: https://github.com/PlumpAlbert.keys
-      path: "/home/{{ user_name }}/.ssh/authorized_keys"
+    copy:
+      content: "{{ hostname }}"
+      dest: /etc/hostname
 
   - name: (Debian) Update system and repository cache
     when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
@@ -43,6 +35,20 @@
     package:
       name: zsh,git,curl,sudo
 
+  - name: install vim
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+    become: true
+    apt:
+      name: vim-tiny
+      state: latest
+
+  - name: install vim
+    when: ansible_distribution == "AlmaLinux" or ansible_distribution == "CentOS"
+    become: true
+    dnf:
+      name: vim-minimal
+      state: latest
+
   - name: Create sudoers directory
     become: true
     file:
@@ -60,3 +66,29 @@
       owner: root
       group: root
       mode: 0644
+
+  - name: create remote user
+    become: true
+    user:
+      append: true
+      group: users
+      groups: sudo
+      shell: /usr/bin/zsh
+      name: "{{ user_name }}"
+      password: "{{ user_password | password_hash('sha512') }}"
+
+  - name: Setup SSH keys on remote host
+    authorized_key:
+      user: "{{ user_name }}"
+      key: https://github.com/PlumpAlbert.keys
+      path: "/home/{{ user_name }}/.ssh/authorized_keys"
+
+  - name: Copy zsh config
+    tags: base
+    become: yes
+    copy:
+      src: zshrc
+      dest: "/home/{{ user_name }}/.zshrc"
+      owner: "{{ user_name }}"
+      group: users
+      mode: 0755
