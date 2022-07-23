@@ -1,12 +1,29 @@
 - name: Install docker and docker-compose dependencies
-  tags: containers
+  tags: containers,debian
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
   become: true
   apt:
     name: ca-certificates,curl,gnupg,lsb-release
     state: latest
 
+- name: Add docker repo
+  tags: containers,centos
+  when: ansible_distribution == "AlmaLinux" or ansible_distribution == "CentOS"
+  become: true
+  yum_repository:
+    baseurl: https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: Remove podman and buildah packages
+  tags: containers,centos
+  when: ansible_distribution == "AlmaLinux" or ansible_distribution == "CentOS"
+  become: true
+  dnf:
+    name: podman,buildah
+    state: absent
+
 - name: Adding Docker's GPG key
-  tags: containers
+  tags: containers,debian
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
   become: true
   shell:
     creates: /usr/share/keyrings/docker-archive-keyring.gpg
@@ -21,6 +38,7 @@
 
 - name: Adding Docker's repo
   tags: containers
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
   become: true
   template:
     dest: /etc/apt/sources.list.d/docker.list
@@ -32,7 +50,7 @@
 - name: Install docker
   tags: containers
   become: true
-  apt:
+  package:
     state: latest
     name: docker-ce,docker-ce-cli,containerd.io
     update_cache: true
