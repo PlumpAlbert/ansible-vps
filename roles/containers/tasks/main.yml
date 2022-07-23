@@ -10,8 +10,13 @@
   tags: containers,centos
   when: ansible_distribution == "AlmaLinux" or ansible_distribution == "CentOS"
   become: true
-  yum_repository:
-    baseurl: https://download.docker.com/linux/centos/docker-ce.repo
+  command: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: update repo cache
+  tags: containers,centos
+  become: true
+  dnf:
+    update_cache: true
 
 - name: Remove podman and buildah packages
   tags: containers,centos
@@ -31,6 +36,7 @@
 
 - name: Find out server's architecture
   tags: containers
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
   become: true
   changed_when: false
   shell: dpkg --print-architecture

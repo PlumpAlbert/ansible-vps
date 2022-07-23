@@ -2,15 +2,14 @@
 - name: Uninstall ufw
   tags: security,firewall
   become: yes
-  apt:
+  package:
     name: ufw
     state: absent
-    purge: yes
 
 - name: Install firewalld
   tags: security,firewall
   become: yes
-  apt:
+  package:
     name: firewalld
     state: latest
 

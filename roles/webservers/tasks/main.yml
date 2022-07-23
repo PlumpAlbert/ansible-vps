@@ -40,16 +40,29 @@
   tags: web,database
   become: yes
   package:
-    name: postgresql
+    name: "{{ postgresql_package }}"
     state: latest
+
+- name: initialize database
+  tags: web,database
+  when: ansible_distribution == "AlmaLinux" or ansible_distribution == "CentOS"
+  become: true
+  command: postgresql-setup --initdb
+  args:
+    creates: "/var/lib/pgsql/data"
 
 - name: Enable postgresql
   tags: web,database
   become: yes
   service:
-    name: postgresql
+    name: "{{ postgresql_service }}"
     state: started
     enabled: yes
+
+- name: create letsencrypt directory
+  tags: web,dns
+  become: yes
+  command: mkdir -p /var/lib/letsencrypt
 
 - name: Copy GoDaddy API credentials
   tags: web,security,dns
@@ -70,7 +83,7 @@
     --cap-drop=all \
     miigotu/certbot-dns-godaddy certbot certonly \
       --authenticator dns-godaddy \
-      --dns-godaddy-propagation-seconds 900 \
+      --dns-godaddy-propagation-seconds 60 \
       --dns-godaddy-credentials /var/lib/letsencrypt/godaddy_credentials.ini \
       --keep-until-expiring --non-interactive --expand \
       --server https://acme-v02.api.letsencrypt.org/directory \
