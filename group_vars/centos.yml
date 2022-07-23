@@ -1,0 +1,3 @@
+---
+postgresql_package: postgresql,postgresql-server
+postgresql_service: postgresql
