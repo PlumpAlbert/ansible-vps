@@ -17,7 +17,7 @@
 - name: Install nginx
   tags: web
   become: yes
-  apt:
+  package:
     name: nginx
     state: latest
 
@@ -39,7 +39,7 @@
 - name: Install postgresql
   tags: web,database
   become: yes
-  apt:
+  package:
     name: postgresql
     state: latest
 
