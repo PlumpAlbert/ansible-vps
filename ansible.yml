@@ -2,8 +2,6 @@
 ---
 - hosts: all
   roles:
-    - base
     - containers
     - webservers
-    - schedule
     - security
